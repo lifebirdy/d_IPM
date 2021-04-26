@@ -76,7 +76,7 @@ extern "C" {
 //! \brief Defines the full scale frequency for IQ variable, Hz
 //! \brief All frequencies are converted into (pu) based on the ratio to this value
 //! \brief this value MUST be larger than the maximum speed that you are expecting from the motor 
-#define USER_IQ_FULL_SCALE_FREQ_Hz        (800.0)   // 800 Example with buffer for 8-pole 6 KRPM motor to be run to 10 KRPM with field weakening; Hz =(RPM * Poles) / 120
+#define USER_IQ_FULL_SCALE_FREQ_Hz        (80.0)   // 800 Example with buffer for 8-pole 6 KRPM motor to be run to 10 KRPM with field weakening; Hz =(RPM * Poles) / 120
 
 //! \brief Defines full scale value for the IQ30 variable of Voltage inside the system
 //! \brief All voltages are converted into (pu) based on the ratio to this value
@@ -86,12 +86,12 @@ extern "C" {
 //! \brief WARNING: if you know the value of your Bemf constant, and you know you are operating at a multiple speed due to field weakening, be sure to set this value higher than the expected Bemf voltage
 //! \brief It is recommended to start with a value ~3x greater than the USER_ADC_FULL_SCALE_VOLTAGE_V and increase to 4-5x if scenarios where a Bemf calculation may exceed these limits
 //! \brief This value is also used to calculate the minimum flux value: USER_IQ_FULL_SCALE_VOLTAGE_V/USER_EST_FREQ_Hz/0.7
-#define USER_IQ_FULL_SCALE_VOLTAGE_V      (450.0)   // 450.0 Example for hvkit_rev1p1 typical usage
+#define USER_IQ_FULL_SCALE_VOLTAGE_V      (800.0)   // 450.0 Example for hvkit_rev1p1 typical usage
 
 //! \brief Defines the maximum voltage at the input to the AD converter
 //! \brief The value that will be represented by the maximum ADC input (3.3V) and conversion (0FFFh)
 //! \brief Hardware dependent, this should be based on the voltage sensing and scaling to the ADC input
-#define USER_ADC_FULL_SCALE_VOLTAGE_V       (409.6)      // 409.6 hvkit_rev1p1 voltage scaling
+#define USER_ADC_FULL_SCALE_VOLTAGE_V       (600.0)      // 409.6 hvkit_rev1p1 voltage scaling
 
 //! \brief Defines the voltage scale factor for the system
 //! \brief Compile time calculation for scale factor (ratio) used throughout the system
@@ -100,12 +100,12 @@ extern "C" {
 //! \brief Defines the full scale current for the IQ variables, A
 //! \brief All currents are converted into (pu) based on the ratio to this value
 //! \brief WARNING: this value MUST be larger than the maximum current readings that you are expecting from the motor or the reading will roll over to 0, creating a control issue 
-#define USER_IQ_FULL_SCALE_CURRENT_A          (10.0)   // 10.0 Example for hvkit_rev1p1 typical usage
+#define USER_IQ_FULL_SCALE_CURRENT_A          (50.0)   // 10.0 Example for hvkit_rev1p1 typical usage
 
 //! \brief Defines the maximum current at the AD converter
 //! \brief The value that will be represented by the maximum ADC input (3.3V) and conversion (0FFFh)
 //! \brief Hardware dependent, this should be based on the current sensing and scaling to the ADC input
-#define USER_ADC_FULL_SCALE_CURRENT_A        (19.89)     // 19.89 hvkit_rev1p1 current scaling
+#define USER_ADC_FULL_SCALE_CURRENT_A        (100.0)     // 19.89 hvkit_rev1p1 current scaling
 
 //! \brief Defines the current scale factor for the system
 //! \brief Compile time calculation for scale factor (ratio) used throughout the system
@@ -147,6 +147,10 @@ extern "C" {
 //! \brief Otherwise you risk missing interrupts and disrupting the timing of the control state machine
 #define USER_PWM_FREQ_kHz                (15.0) //30.0 Example, 8.0 - 30.0 KHz typical; 45-80 KHz may be required for very low inductance, high speed motors
 
+//! \brief Defines the Pulse Width Modulation (PWM) period, usec
+//! \brief Compile time calculation
+#define USER_PWM_PERIOD_usec       (1000.0/USER_PWM_FREQ_kHz)
+
 //! \brief Defines the maximum Voltage vector (Vs) magnitude allowed.  This value sets the maximum magnitude for the output of the
 //! \brief Id and Iq PI current controllers.  The Id and Iq current controller outputs are Vd and Vq.
 //! \brief The relationship between Vs, Vd, and Vq is:  Vs = sqrt(Vd^2 + Vq^2).  In this FOC controller, the
@@ -157,18 +161,6 @@ extern "C" {
 //! \brief For space vector over-modulation, see lab 10 for details on system requirements that will allow the SVM generator to go all the way to trapezoidal.
 #define USER_MAX_VS_MAG_PU        (0.5)    // Set to 0.5 if a current reconstruction technique is not used.  Look at the module svgen_current in lab10a-x for more info.
 
-//! \brief Defines the address of estimator handle
-//!
-#define USER_EST_HANDLE_ADDRESS    (0x600)
-
-//! \brief Defines the direct voltage (Vd) scale factor
-//!
-#define USER_VD_SF                 (0.95)
-
-//! \brief Defines the Pulse Width Modulation (PWM) period, usec
-//! \brief Compile time calculation
-#define USER_PWM_PERIOD_usec       (1000.0/USER_PWM_FREQ_kHz)
-
 //! \brief Defines the Interrupt Service Routine (ISR) frequency, Hz
 //!
 #define USER_ISR_FREQ_Hz           ((float_t)USER_PWM_FREQ_kHz * 1000.0 / (float_t)USER_NUM_PWM_TICKS_PER_ISR_TICK)
@@ -176,6 +168,14 @@ extern "C" {
 //! \brief Defines the Interrupt Service Routine (ISR) period, usec
 //!
 #define USER_ISR_PERIOD_usec       (USER_PWM_PERIOD_usec * (float_t)USER_NUM_PWM_TICKS_PER_ISR_TICK)
+
+//! \brief Defines the address of estimator handle
+//!
+#define USER_EST_HANDLE_ADDRESS    (0x600)
+
+//! \brief Defines the direct voltage (Vd) scale factor
+//!
+#define USER_VD_SF                 (0.95)
 
 
 //! \brief DECIMATION
@@ -215,14 +215,6 @@ extern "C" {
 //! \brief Compile time calculation
 #define USER_CTRL_FREQ_Hz          (uint_least32_t)(USER_ISR_FREQ_Hz/USER_NUM_ISR_TICKS_PER_CTRL_TICK)
 
-//! \brief Defines the estimator frequency, Hz
-//! \brief Compile time calculation
-#define USER_EST_FREQ_Hz           (uint_least32_t)(USER_CTRL_FREQ_Hz/USER_NUM_CTRL_TICKS_PER_EST_TICK)
-
-//! \brief Defines the trajectory frequency, Hz
-//! \brief Compile time calculation
-#define USER_TRAJ_FREQ_Hz          (uint_least32_t)(USER_CTRL_FREQ_Hz/USER_NUM_CTRL_TICKS_PER_TRAJ_TICK)
-
 //! \brief Defines the controller execution period, usec
 //! \brief Compile time calculation
 #define USER_CTRL_PERIOD_usec      (USER_ISR_PERIOD_usec * USER_NUM_ISR_TICKS_PER_CTRL_TICK)
@@ -230,6 +222,14 @@ extern "C" {
 //! \brief Defines the controller execution period, sec
 //! \brief Compile time calculation
 #define USER_CTRL_PERIOD_sec       ((float_t)USER_CTRL_PERIOD_usec/(float_t)1000000.0)
+
+//! \brief Defines the estimator frequency, Hz
+//! \brief Compile time calculation
+#define USER_EST_FREQ_Hz           (uint_least32_t)(USER_CTRL_FREQ_Hz/USER_NUM_CTRL_TICKS_PER_EST_TICK)
+
+//! \brief Defines the trajectory frequency, Hz
+//! \brief Compile time calculation
+#define USER_TRAJ_FREQ_Hz          (uint_least32_t)(USER_CTRL_FREQ_Hz/USER_NUM_CTRL_TICKS_PER_TRAJ_TICK)
 
 
 //! \brief LIMITS
@@ -354,11 +354,12 @@ extern "C" {
 #define Weg_00118ET3E143T_W22_460   307
 #define Oriental_4IK25A_SH_230      308
 #define Dayton_2N865T               309
+#define Hyosung_EF112M              310
 
 //! \brief Uncomment the motor which should be included at compile
 //! \brief These motor ID settings and motor parameters are then available to be used by the control system
 //! \brief Once your ideal settings and parameters are identified update the motor section here so it is available in the binary code
-#define USER_MOTOR Estun_EMJ_04APB22
+//#define USER_MOTOR Estun_EMJ_04APB22
 //#define USER_MOTOR Anaheim_BLY172S
 //#define USER_MOTOR My_Motor
 //#define USER_MOTOR Belt_Drive_Washer_IPM
@@ -371,6 +372,7 @@ extern "C" {
 //#define USER_MOTOR Weg_00118ET3E143T_W22_460
 //#define USER_MOTOR Oriental_4IK25A_SH_230
 //#define USER_MOTOR Dayton_2N865T
+#define USER_MOTOR Hyosung_EF112M
 
 
 #if (USER_MOTOR == Estun_EMJ_04APB22)                  // Name must match the motor #define
@@ -559,6 +561,20 @@ extern "C" {
 #define USER_MOTOR_RES_EST_CURRENT      (1.0)
 #define USER_MOTOR_IND_EST_CURRENT      (NULL)
 #define USER_MOTOR_MAX_CURRENT          (5.0)
+#define USER_MOTOR_FLUX_EST_FREQ_Hz     (5.0)
+
+#elif (USER_MOTOR == Hyosung_EF112M)
+#define USER_MOTOR_TYPE                 MOTOR_Type_Induction
+#define USER_MOTOR_NUM_POLE_PAIRS       (2)
+#define USER_MOTOR_Rr                   (2.540533)
+#define USER_MOTOR_Rs                   (4.681129)
+#define USER_MOTOR_Ls_d                 (0.06160000)
+#define USER_MOTOR_Ls_q                 USER_MOTOR_Ls_d
+#define USER_MOTOR_RATED_FLUX           (0.8165*230.0/60.0)
+#define USER_MOTOR_MAGNETIZING_CURRENT  (2.17855)
+#define USER_MOTOR_RES_EST_CURRENT      (1.0)
+#define USER_MOTOR_IND_EST_CURRENT      (NULL)
+#define USER_MOTOR_MAX_CURRENT          (8.0)
 #define USER_MOTOR_FLUX_EST_FREQ_Hz     (5.0)
 
 
