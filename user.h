@@ -354,7 +354,7 @@ extern "C" {
 #define Weg_00118ET3E143T_W22_460   307
 #define Oriental_4IK25A_SH_230      308
 #define Dayton_2N865T               309
-#define Hyosung_EF112M              310
+#define Hyosung_EF112M              310                 // TRinno...20210426...kenny
 
 //! \brief Uncomment the motor which should be included at compile
 //! \brief These motor ID settings and motor parameters are then available to be used by the control system
@@ -372,7 +372,7 @@ extern "C" {
 //#define USER_MOTOR Weg_00118ET3E143T_W22_460
 //#define USER_MOTOR Oriental_4IK25A_SH_230
 //#define USER_MOTOR Dayton_2N865T
-#define USER_MOTOR Hyosung_EF112M
+#define USER_MOTOR Hyosung_EF112M                       // TRinno...20210426...kenny
 
 
 #if (USER_MOTOR == Estun_EMJ_04APB22)                  // Name must match the motor #define
@@ -563,7 +563,7 @@ extern "C" {
 #define USER_MOTOR_MAX_CURRENT          (5.0)
 #define USER_MOTOR_FLUX_EST_FREQ_Hz     (5.0)
 
-#elif (USER_MOTOR == Hyosung_EF112M)
+#elif (USER_MOTOR == Hyosung_EF112M)                                        // TRinno...20210426...kenny    modified from Weg_00118ET3E143T_W22_230
 #define USER_MOTOR_TYPE                 MOTOR_Type_Induction
 #define USER_MOTOR_NUM_POLE_PAIRS       (2)
 #define USER_MOTOR_Rr                   (2.540533)
