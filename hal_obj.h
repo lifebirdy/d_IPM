@@ -50,7 +50,7 @@
 #include "sw/drivers/pwm/src/32b/f28x/f2802x/pwm.h"
 #include "sw/drivers/pwmdac/src/32b/f28x/f2802x/pwmdac.h"
 #include "sw/drivers/pwr/src/32b/f28x/f2802x/pwr.h"
-#include "sw/drivers/sci/src/32b/f28x/f2802x/sci.h"
+#include "sw/drivers/sci/src/32b/f28x/f2802x/sci.h"			// TRinno...20210304kenny
 #include "sw/drivers/timer/src/32b/f28x/f2802x/timer.h"
 #include "sw/drivers/wdog/src/32b/f28x/f2802x/wdog.h"
 
@@ -166,7 +166,7 @@ typedef struct _HAL_Obj_
   uint_least8_t numCurrentSensors; //!< the number of current sensors
   uint_least8_t numVoltageSensors; //!< the number of voltage sensors
 
-  SCI_Handle    sciAHandle;          //!< the SCI handle ...20210304kenny
+  SCI_Handle    sciAHandle;        //!< the SCI handle TRinno...20210304kenny
 
 } HAL_Obj;
 

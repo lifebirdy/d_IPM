@@ -169,10 +169,10 @@ void HAL_OscTempComp(HAL_Handle handle)
 
 void HAL_osc1Comp(HAL_Handle handle, const int16_t sensorSample)
 {
-	int16_t compOscFineTrim;
-	HAL_Obj *obj = (HAL_Obj *)handle;
+    int16_t compOscFineTrim;
+    HAL_Obj *obj = (HAL_Obj *)handle;
 
-	ENABLE_PROTECTED_REGISTER_WRITE_MODE;
+    ENABLE_PROTECTED_REGISTER_WRITE_MODE;
 
     compOscFineTrim = ((sensorSample - getRefTempOffset())*(int32_t)getOsc1FineTrimSlope()
                       + OSC_POSTRIM_OFF + FP_ROUND )/FP_SCALE + getOsc1FineTrimOffset() - OSC_POSTRIM;
@@ -181,7 +181,7 @@ void HAL_osc1Comp(HAL_Handle handle, const int16_t sensorSample)
       {
         compOscFineTrim = 31;
       }
-	else if(compOscFineTrim < -31)
+    else if(compOscFineTrim < -31)
       {
         compOscFineTrim = -31;
       }
@@ -196,10 +196,10 @@ void HAL_osc1Comp(HAL_Handle handle, const int16_t sensorSample)
 
 void HAL_osc2Comp(HAL_Handle handle, const int16_t sensorSample)
 {
-	int16_t compOscFineTrim;
-	HAL_Obj *obj = (HAL_Obj *)handle;
+    int16_t compOscFineTrim;
+    HAL_Obj *obj = (HAL_Obj *)handle;
 
-	ENABLE_PROTECTED_REGISTER_WRITE_MODE;
+    ENABLE_PROTECTED_REGISTER_WRITE_MODE;
 
     compOscFineTrim = ((sensorSample - getRefTempOffset())*(int32_t)getOsc2FineTrimSlope()
                       + OSC_POSTRIM_OFF + FP_ROUND )/FP_SCALE + getOsc2FineTrimOffset() - OSC_POSTRIM;
@@ -208,7 +208,7 @@ void HAL_osc2Comp(HAL_Handle handle, const int16_t sensorSample)
       {
         compOscFineTrim = 31;
       }
-	else if(compOscFineTrim < -31)
+    else if(compOscFineTrim < -31)
       {
         compOscFineTrim = -31;
       }
@@ -482,8 +482,8 @@ void HAL_enableAdcInts(HAL_Handle handle)
 
 
   // enable the PIE interrupts associated with the ADC interrupts
-//  PIE_enableAdcInt(obj->pieHandle,ADC_IntNumber_1);
-  PIE_enableAdcInt(obj->pieHandle,ADC_IntNumber_1HP);           // ...20210305kenny
+  PIE_enableAdcInt(obj->pieHandle,ADC_IntNumber_1);
+//  PIE_enableAdcInt(obj->pieHandle,ADC_IntNumber_1HP);			// TRinno...20210304kenny
 
 
   // enable the ADC interrupts
@@ -491,14 +491,14 @@ void HAL_enableAdcInts(HAL_Handle handle)
 
 
   // enable the cpu interrupt for ADC interrupts
-//  CPU_enableInt(obj->cpuHandle,CPU_IntNumber_10);
-  CPU_enableInt(obj->cpuHandle,CPU_IntNumber_1);           // ...20210305kenny
+  CPU_enableInt(obj->cpuHandle,CPU_IntNumber_10);
+//  CPU_enableInt(obj->cpuHandle,CPU_IntNumber_1);				// TRinno...20210304kenny
 
   return;
 } // end of HAL_enableAdcInts() function
 
 
-#ifdef USER_SCIA_INT            // ...20210305kenny
+#ifdef USER_SCIA_INT            // TRinno...20210304kenny
 void HAL_enableSciInts(HAL_Handle handle)
 {
   HAL_Obj *obj = (HAL_Obj *)handle;
@@ -616,7 +616,7 @@ HAL_Handle HAL_init(void *pMemory,const size_t numBytes)
   obj->adcHandle = ADC_init((void *)ADC_BASE_ADDR,sizeof(ADC_Obj));
 
 
-  // initialize the SCI handle                                          ...20210304kenny
+  // initialize the SCI handle			TRinno...20210304kenny
   obj->sciAHandle = SCI_init((void *)SCIA_BASE_ADDR, sizeof(SCI_Obj));
 
 
@@ -745,7 +745,7 @@ void HAL_setParams(HAL_Handle handle,const USER_Params *pUserParams)
   HAL_setupGpios(handle);
 
 
-  // setup the sciA         ...20210304kenny
+  // setup the sciA			TRinno...20210304kenny
   HAL_setupSciA(handle);
 
 
@@ -872,33 +872,33 @@ void HAL_setupAdcs(HAL_Handle handle)
   ADC_setSocSampleDelay(obj->adcHandle,ADC_SocNumber_2,ADC_SocSampleDelay_7_cycles);
 
   // EXT IC-FB
-  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_3,ADC_SocChanNumber_B3);
+  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_3,ADC_SocChanNumber_B3);	// A3->B3 for d-IPM TRinno...20201228kenny
   ADC_setSocTrigSrc(obj->adcHandle,ADC_SocNumber_3,ADC_SocTrigSrc_EPWM1_ADCSOCA);
   ADC_setSocSampleDelay(obj->adcHandle,ADC_SocNumber_3,ADC_SocSampleDelay_7_cycles);
 
-  // EXT Vhb1
-  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_4,ADC_SocChanNumber_A6);
+  // EXT V1
+  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_4,ADC_SocChanNumber_A6);	// B7->A6 for d-IPM TRinno...20201228kenny
   ADC_setSocTrigSrc(obj->adcHandle,ADC_SocNumber_4,ADC_SocTrigSrc_EPWM1_ADCSOCA);
   ADC_setSocSampleDelay(obj->adcHandle,ADC_SocNumber_4,ADC_SocSampleDelay_7_cycles);
 
-  // EXT Vhb2
-  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_5,ADC_SocChanNumber_A2);
+  // EXT V2
+  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_5,ADC_SocChanNumber_A2);	// B6->A2 for d-IPM TRinno...20201228kenny
   ADC_setSocTrigSrc(obj->adcHandle,ADC_SocNumber_5,ADC_SocTrigSrc_EPWM1_ADCSOCA);
   ADC_setSocSampleDelay(obj->adcHandle,ADC_SocNumber_5,ADC_SocSampleDelay_7_cycles);
 
-  // EXT Vhb3
-  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_6,ADC_SocChanNumber_B2);
+  // EXT V3
+  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_6,ADC_SocChanNumber_B2);	// B4->B2 for d-IPM TRinno...20201228kenny
   ADC_setSocTrigSrc(obj->adcHandle,ADC_SocNumber_6,ADC_SocTrigSrc_EPWM1_ADCSOCA);
   ADC_setSocSampleDelay(obj->adcHandle,ADC_SocNumber_6,ADC_SocSampleDelay_7_cycles);
 
   // EXT VDCBUS
-  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_7,ADC_SocChanNumber_B7);
+  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_7,ADC_SocChanNumber_B7);	// A7->B7 for d-IPM TRinno...20201228kenny
   ADC_setSocTrigSrc(obj->adcHandle,ADC_SocNumber_7,ADC_SocTrigSrc_EPWM1_ADCSOCA);
   ADC_setSocSampleDelay(obj->adcHandle,ADC_SocNumber_7,ADC_SocSampleDelay_7_cycles);
 
-  // EXT MODULE_TEMP Potentiometer                                      // ...20210312kenny
-  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_8,ADC_SocChanNumber_B7);
-  ADC_setSocTrigSrc(obj->adcHandle,ADC_SocNumber_8,ADC_Int1TriggersSOC);
+  // EXT MODULE_TEMP Potentiometer			// TRinno...20210312kenny
+  ADC_setSocChanNumber(obj->adcHandle,ADC_SocNumber_8,ADC_SocChanNumber_B4);
+  ADC_setSocTrigSrc(obj->adcHandle,ADC_SocNumber_8,ADC_SocTrigSrc_EPWM1_ADCSOCA);
   ADC_setSocSampleDelay(obj->adcHandle,ADC_SocNumber_8,ADC_SocSampleDelay_7_cycles);
 
   return;
@@ -1001,12 +1001,10 @@ void HAL_setupGpios(HAL_Handle handle)
   GPIO_setMode(obj->gpioHandle,GPIO_Number_19,GPIO_19_Mode_GeneralPurpose);
 
   // RX-SLAVE
-//  GPIO_setMode(obj->gpioHandle,GPIO_Number_28,GPIO_28_Mode_GeneralPurpose);
-  GPIO_setMode(obj->gpioHandle,GPIO_Number_28,GPIO_28_Mode_SCIRXDA);         // ...20210305kenny
+  GPIO_setMode(obj->gpioHandle,GPIO_Number_28,GPIO_28_Mode_SCIRXDA);         // TRinno...20210304kenny
 
   // TX-SLAVE
-//  GPIO_setMode(obj->gpioHandle,GPIO_Number_29,GPIO_29_Mode_GeneralPurpose);
-  GPIO_setMode(obj->gpioHandle,GPIO_Number_29,GPIO_29_Mode_SCITXDA);         // ...20210305kenny
+  GPIO_setMode(obj->gpioHandle,GPIO_Number_29,GPIO_29_Mode_SCITXDA);         // TRinno...20210304kenny
 
   // I2C-SDA
   GPIO_setMode(obj->gpioHandle,GPIO_Number_32,GPIO_32_Mode_GeneralPurpose);
@@ -1029,7 +1027,7 @@ void HAL_setupGpios(HAL_Handle handle)
 }  // end of HAL_setupGpios() function
 
 
-void HAL_setupSciA(HAL_Handle handle)           // ...20210304kenny
+void HAL_setupSciA(HAL_Handle handle)			// TRinno...20210304kenny
 {
   HAL_Obj *obj = (HAL_Obj *)handle;
 
@@ -1093,7 +1091,7 @@ void HAL_setupPeripheralClks(HAL_Handle handle)
 
   CLK_disableI2cClock(obj->clkHandle);
 
-  CLK_enableSciaClock(obj->clkHandle);
+  CLK_enableSciaClock(obj->clkHandle);			// TRinno...20210304kenny	already enable code exist
 
   CLK_disableSpiaClock(obj->clkHandle);
   
@@ -1290,21 +1288,22 @@ void HAL_setupTimers(HAL_Handle handle,const float_t systemFreq_MHz)
 
 void HAL_setDacParameters(HAL_Handle handle, HAL_DacData_t *pDacData)
 {
-	HAL_Obj *obj = (HAL_Obj *)handle;
+    HAL_Obj *obj = (HAL_Obj *)handle;
 
-	pDacData->PeriodMax = PWMDAC_getPeriod(obj->pwmDacHandle[PWMDAC_Number_1]);
+    pDacData->PeriodMax = PWMDAC_getPeriod(obj->pwmDacHandle[PWMDAC_Number_1]);
 
-	pDacData->offset[0] = _IQ(0.5);
-	pDacData->offset[1] = _IQ(0.5);
-	pDacData->offset[2] = _IQ(0.0);
-	pDacData->offset[3] = _IQ(0.0);
+    pDacData->offset[0] = _IQ(0.5);
+    pDacData->offset[1] = _IQ(0.5);
+    pDacData->offset[2] = _IQ(0.0);
+    pDacData->offset[3] = _IQ(0.0);
 
-	pDacData->gain[0] = _IQ(1.0);
-	pDacData->gain[1] = _IQ(1.0);
-	pDacData->gain[2] = _IQ(1.0);
-	pDacData->gain[3] = _IQ(1.0);
+    pDacData->gain[0] = _IQ(1.0);
+    pDacData->gain[1] = _IQ(1.0);
+    pDacData->gain[2] = _IQ(1.0);
+    pDacData->gain[3] = _IQ(1.0);
 
-	return;
-}	//end of HAL_setDacParameters() function
+    return;
+}   //end of HAL_setDacParameters() function
 
 // end of file
+

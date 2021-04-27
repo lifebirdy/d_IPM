@@ -37,7 +37,7 @@
 //!
 //! (C) Copyright 2012, Texas Instruments, Inc.
 
-
+// TRinno...20210426kenny
 // **************************************************************************
 // the includes
 
@@ -69,6 +69,7 @@ extern "C" {
 // **************************************************************************
 // the defines
 
+#define DEBUG                               // Debug Message Available via SCI
 #define USER_SCIA_INT   1                   // Use SCIA interrupt
 
 //! \brief CURRENTS AND VOLTAGES
@@ -76,7 +77,7 @@ extern "C" {
 //! \brief Defines the full scale frequency for IQ variable, Hz
 //! \brief All frequencies are converted into (pu) based on the ratio to this value
 //! \brief this value MUST be larger than the maximum speed that you are expecting from the motor 
-#define USER_IQ_FULL_SCALE_FREQ_Hz        (80.0)   // 800 Example with buffer for 8-pole 6 KRPM motor to be run to 10 KRPM with field weakening; Hz =(RPM * Poles) / 120
+#define USER_IQ_FULL_SCALE_FREQ_Hz        (120.0)   // 800 Example with buffer for 8-pole 6 KRPM motor to be run to 10 KRPM with field weakening; Hz =(RPM * Poles) / 120
 
 //! \brief Defines full scale value for the IQ30 variable of Voltage inside the system
 //! \brief All voltages are converted into (pu) based on the ratio to this value
@@ -354,7 +355,7 @@ extern "C" {
 #define Weg_00118ET3E143T_W22_460   307
 #define Oriental_4IK25A_SH_230      308
 #define Dayton_2N865T               309
-#define Hyosung_EF112M              310                 // TRinno...20210426...kenny
+#define Hyosung_EF112M              310                 // TRinno...20210426kenny
 
 //! \brief Uncomment the motor which should be included at compile
 //! \brief These motor ID settings and motor parameters are then available to be used by the control system
@@ -372,8 +373,14 @@ extern "C" {
 //#define USER_MOTOR Weg_00118ET3E143T_W22_460
 //#define USER_MOTOR Oriental_4IK25A_SH_230
 //#define USER_MOTOR Dayton_2N865T
-#define USER_MOTOR Hyosung_EF112M                       // TRinno...20210426...kenny
+#define USER_MOTOR Hyosung_EF112M                       // TRinno...20210426kenny
 
+
+#define USER_MOTOR_FREQ_LOW             (10.0)          // Hz - suggested to set to 10% of rated motor frequency
+#define USER_MOTOR_FREQ_HIGH            (60.0)          // Hz - suggested to set to 100% of rated motor frequency
+#define USER_MOTOR_FREQ_MAX             (72.0)          // Hz - suggested to set to 120% of rated motor frequency
+#define USER_MOTOR_VOLT_MIN             (48.0)          // Volt - suggested to set to ~20% of rated motor voltage
+#define USER_MOTOR_VOLT_MAX             (240.0)         // Volt - suggested to set to 100% of rated motor voltage
 
 #if (USER_MOTOR == Estun_EMJ_04APB22)                  // Name must match the motor #define
 #define USER_MOTOR_TYPE                 MOTOR_Type_Pm  // Motor_Type_Pm (All Synchronous: BLDC, PMSM, SMPM, IPM) or Motor_Type_Induction (Asynchronous ACI)
@@ -388,12 +395,6 @@ extern "C" {
 #define USER_MOTOR_IND_EST_CURRENT      (-1.0)         // During Motor ID, maximum current (negative Amperes, float) used for Ls estimation, use just enough to enable rotation
 #define USER_MOTOR_MAX_CURRENT          (3.82)         // CRITICAL: Used during ID and run-time, sets a limit on the maximum current command output of the provided Speed PI Controller to the Iq controller
 #define USER_MOTOR_FLUX_EST_FREQ_Hz     (20.0)         // During Motor ID, maximum commanded speed (Hz, float), ~10% rated
-
-#define USER_MOTOR_FREQ_LOW				(10.0)			// Hz - suggested to set to 10% of rated motor frequency
-#define USER_MOTOR_FREQ_HIGH			(50.0)			// Hz - suggested to set to 100% of rated motor frequency
-#define USER_MOTOR_FREQ_MAX				(60.0)			// Hz - suggested to set to 120% of rated motor frequency
-#define USER_MOTOR_VOLT_MIN				(80.0)			// Volt - suggested to set to ~20% of rated motor voltage
-#define USER_MOTOR_VOLT_MAX				(240.0)			// Volt - suggested to set to 100% of rated motor voltage
 
 #elif (USER_MOTOR == Anaheim_BLY172S)
 #define USER_MOTOR_TYPE                 MOTOR_Type_Pm
@@ -563,7 +564,7 @@ extern "C" {
 #define USER_MOTOR_MAX_CURRENT          (5.0)
 #define USER_MOTOR_FLUX_EST_FREQ_Hz     (5.0)
 
-#elif (USER_MOTOR == Hyosung_EF112M)                                        // TRinno...20210426...kenny    modified from Weg_00118ET3E143T_W22_230
+#elif (USER_MOTOR == Hyosung_EF112M)                                        // TRinno...20210426kenny    modified from Weg_00118ET3E143T_W22_230
 #define USER_MOTOR_TYPE                 MOTOR_Type_Induction
 #define USER_MOTOR_NUM_POLE_PAIRS       (2)
 #define USER_MOTOR_Rr                   (2.540533)

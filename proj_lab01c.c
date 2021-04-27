@@ -98,8 +98,8 @@ CTRL_Obj ctrl;				//v1p7 format
 #endif
 
 uint16_t gLEDcnt = 0;
-uint16_t gSCIdata, gSCIsuccess;           // ...20210305kenny
-
+uint16_t gSCIdata, gSCIsuccess;             // TRinno...20210304kenny for use SCI (UART)
+_iq gPotentiometer = _IQ(0.0);              // TRinno...20210312kenny for read temperature
 
 volatile MOTOR_Vars_t gMotorVars = MOTOR_Vars_INIT;
 
@@ -282,7 +282,7 @@ void main(void)
   HAL_enableAdcInts(halHandle);
 
 
-#ifdef USER_SCIA_INT         // ...20210305kenny
+#ifdef USER_SCIA_INT            // TRinno...20210304kenny
   // enable the SCI interrupts
   HAL_enableSciInts(halHandle);
 #endif
@@ -333,13 +333,33 @@ void main(void)
     // Waiting for enable system flag to be set
     while(!(gMotorVars.Flag_enableSys))//;
     {
-#ifndef USER_SCIA_INT        // SCI (UART) Test Program ...20210305kenny
+#ifndef USER_SCIA_INT        // SCI (UART) Test Program TRinno...20210304kenny
       if(SCI_rxDataReady(halHandle->sciAHandle))
-        {
-          while(SCI_rxDataReady(halHandle->sciAHandle) == 0);
-          gSCIdata = SCI_getDataNonBlocking(halHandle->sciAHandle, &gSCIsuccess);
-          gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
-        }
+      {
+        while(SCI_rxDataReady(halHandle->sciAHandle) == 0);
+        gSCIdata = SCI_getDataNonBlocking(halHandle->sciAHandle, &gSCIsuccess);
+        gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = '\n';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = '\r';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = 'h';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = 'e';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = 'l';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = 'l';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = 'o';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = '!';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = '\n';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+        gSCIdata = '\r';
+        SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      }
 #endif
     }
 
@@ -446,8 +466,11 @@ void main(void)
                     USER_softwareUpdate1p6(ctrlHandle);
                   }
 
-              }
-          }
+              } // end of if(flag_ctrlStateChanged)
+
+//            gSCIdata = 't'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);   // test of MODULE_TEMP TRinno...20210312kenny
+            gPotentiometer = HAL_readPotentiometerData(halHandle);                  //  add MODULE_TEMP TRinno...20210312kenny
+          } // end of if(CTRL_isError(ctrlHandle))
 
 
         if(EST_isMotorIdentified(obj->estHandle))
@@ -582,6 +605,7 @@ interrupt void mainISR(void)
 
          controller_obj->speed_ref_pu = TRAJ_getIntValue(controller_obj->trajHandle_spd);
 
+         //
          ANGLE_GEN_run(angle_genHandle, controller_obj->speed_ref_pu);
 
          // generate the motor electrical angle
@@ -713,14 +737,54 @@ interrupt void mainISR(void)
   return;
 } // end of mainISR() function
 
-#ifdef USER_SCIA_INT            // ...20210305kenny
+
+#ifdef USER_SCIA_INT            // TRinno...20210304kenny
 //! \brief the ISR for SCI-A receive interrupt
 interrupt void sciARxISR(void)
 {
   HAL_Obj *obj = (HAL_Obj *)halHandle;
 
   gSCIdata = SCI_getDataNonBlocking(halHandle->sciAHandle, &gSCIsuccess);
-  gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+  switch (gSCIdata){
+    case 'e':
+      gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'S'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'y'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 's'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gMotorVars.Flag_enableSys = true;
+      break;
+    case 'r':
+      gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'u'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'I'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'D'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gMotorVars.Flag_Run_Identify = true;
+      break;
+    case 'd':
+      gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'e'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'S'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'y'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 's'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gMotorVars.Flag_enableSys = false;
+      break;
+    case 'f':
+      gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'i'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'i'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 's'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'h'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gMotorVars.Flag_Run_Identify = false;
+      break;
+    default:
+      gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+      break;
+  }
+  gSCIdata = '\r'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+  gSCIdata = '\n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
 
   // acknowledge interrupt from SCI group so that SCI interrupt
   // is not received twice
@@ -728,6 +792,7 @@ interrupt void sciARxISR(void)
 
 } // end of sciARxISR() function
 #endif
+
 
 void updateGlobalVariables_motor(CTRL_Handle handle)
 {

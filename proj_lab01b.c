@@ -61,6 +61,7 @@
 
 #define LED_BLINK_FREQ_Hz   5
 
+
 // **************************************************************************
 // the globals
 
@@ -97,8 +98,8 @@ CTRL_Obj ctrl;				//v1p7 format
 #endif
 
 uint16_t gLEDcnt = 0;
-uint16_t gSCIdata, gSCIsuccess;             // ...20210305kenny for use SCI (UART)
-_iq gPotentiometer = _IQ(0.0);              // ...20210312kenny for read temperature
+uint16_t gSCIdata, gSCIsuccess;             // TRinno...20210304kenny for use SCI (UART)
+_iq gPotentiometer = _IQ(0.0);              // TRinno...20210312kenny for read temperature
 
 volatile MOTOR_Vars_t gMotorVars = MOTOR_Vars_INIT;
 
@@ -127,9 +128,9 @@ DRV_SPI_8305_Vars_t gDrvSpi8305Vars;
 CPU_TIME_Handle  cpu_timeHandle;
 CPU_TIME_Obj     cpu_time;
 
-//#ifndef F2802xF
+#ifndef F2802xF
 HAL_DacData_t gDacData;
-//#endif
+#endif
 
 _iq gFlux_pu_to_Wb_sf;
 
@@ -247,17 +248,17 @@ void main(void)
   CPU_TIME_setParams(cpu_timeHandle, PWM_getPeriod(halHandle->pwmHandle[0]));
 
 #ifndef F2802xF
+
   // set DAC parameters
+ gDacData.ptrData[0] = &gPwmData.Tabc.value[0];
+ gDacData.ptrData[1] = &gPwmData.Tabc.value[1];
+ gDacData.ptrData[2] = &gPwmData.Tabc.value[2];
+ gDacData.ptrData[3] = &gAdcData.V.value[0];
 
-//  gDacData.ptrData[0] = &gPwmData.Tabc.value[0];
-//  gDacData.ptrData[1] = &gPwmData.Tabc.value[1];
-//  gDacData.ptrData[2] = &gPwmData.Tabc.value[2];
-//  gDacData.ptrData[3] = &gAdcData.V.value[0];
-
-  gDacData.ptrData[0] = &angle_gen.Angle_pu;
-  gDacData.ptrData[1] = &gAdcData.I.value[0];
-  gDacData.ptrData[2] = &gPwmData.Tabc.value[0];
-  gDacData.ptrData[3] = &gAdcData.V.value[0];
+ //gDacData.ptrData[0] = &angle_gen.Angle_pu;
+ //gDacData.ptrData[1] = &gAdcData.I.value[0];
+ //gDacData.ptrData[2] = &gPwmData.Tabc.value[0];
+// gDacData.ptrData[3] = &gAdcData.V.value[0];
 
   HAL_setDacParameters(halHandle, &gDacData);
 #endif
@@ -276,7 +277,7 @@ void main(void)
   datalog.iptr[2] = &gAdcData.V.value[0];		// datalogBuff[2]
 
   datalog.Flag_EnableLogData = true;
-  datalog.Flag_EnableLogOneShot = false;
+  datalog.Flag_EnableLogOneShot = false;#endif
 #endif
 
   // setup faults
@@ -291,7 +292,7 @@ void main(void)
   HAL_enableAdcInts(halHandle);
 
 
-#ifdef USER_SCIA_INT         // ...20210305kenny
+#ifdef USER_SCIA_INT            // TRinno...20210304kenny
   // enable the SCI interrupts
   HAL_enableSciInts(halHandle);
 #endif
@@ -339,7 +340,7 @@ void main(void)
     // Waiting for enable system flag to be set
     while(!(gMotorVars.Flag_enableSys))//;
     {
-#ifndef USER_SCIA_INT        // SCI (UART) Test Program ...20210305kenny
+#ifndef USER_SCIA_INT        // SCI (UART) Test Program TRinno...20210304kenny
       if(SCI_rxDataReady(halHandle->sciAHandle))
       {
         while(SCI_rxDataReady(halHandle->sciAHandle) == 0);
@@ -471,9 +472,11 @@ void main(void)
                     // call this function to fix 1p6
                     USER_softwareUpdate1p6(ctrlHandle);
                   }
+
               } // end of if(flag_ctrlStateChanged)
 
-              gPotentiometer = HAL_readPotentiometerData(halHandle);                  // ...20210316kenny add MODULE_TEMP
+//            gSCIdata = 't'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);   // test of MODULE_TEMP TRinno...20210312kenny
+            gPotentiometer = HAL_readPotentiometerData(halHandle);                  //  add MODULE_TEMP TRinno...20210312kenny
           } // end of if(CTRL_isError(ctrlHandle))
 
 
@@ -669,7 +672,7 @@ interrupt void mainISR(void)
   DATALOG_update(datalogHandle);
 #endif
 
-//#ifndef F2802xF
+#ifndef F2802xF
   // connect inputs of the PWMDAC module.
   gDacData.value[0] = (*gDacData.ptrData[0]); 	//
   gDacData.value[1] = (*gDacData.ptrData[1]); 	//
@@ -677,12 +680,13 @@ interrupt void mainISR(void)
   gDacData.value[3] = (*gDacData.ptrData[3]); 	//
 
   HAL_writeDacData(halHandle,&gDacData);
-//#endif
+#endif
 
   return;
 } // end of mainISR() function
 
-#ifdef USER_SCIA_INT            // ...20210305kenny
+
+#ifdef USER_SCIA_INT            // TRinno...20210304kenny
 //! \brief the ISR for SCI-A receive interrupt
 interrupt void sciARxISR(void)
 {
@@ -692,32 +696,43 @@ interrupt void sciARxISR(void)
   switch (gSCIdata){
     case 'e':
       gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
-      gSCIdata = 'e'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gSCIdata = 'n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'S'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'y'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 's'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gMotorVars.Flag_enableSys = true;
       break;
     case 'r':
       gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
-      gSCIdata = 'r'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'u'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gSCIdata = 'n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'I'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'D'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gMotorVars.Flag_Run_Identify = true;
       break;
     case 'd':
       gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
-      gSCIdata = 'd'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gSCIdata = 'e'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'S'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'y'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 's'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gMotorVars.Flag_enableSys = false;
       break;
-    case 's':
+    case 'f':
       gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'i'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'i'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gSCIdata = 's'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
-      gSCIdata = 't'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+      gSCIdata = 'h'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
       gMotorVars.Flag_Run_Identify = false;
       break;
     default:
       gSCIsuccess = SCI_putDataNonBlocking(halHandle->sciAHandle, gSCIdata);
       break;
   }
+  gSCIdata = '\r'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
+  gSCIdata = '\n'; SCI_putDataBlocking(halHandle->sciAHandle, gSCIdata);
 
   // acknowledge interrupt from SCI group so that SCI interrupt
   // is not received twice
@@ -725,6 +740,7 @@ interrupt void sciARxISR(void)
 
 } // end of sciARxISR() function
 #endif
+
 
 void updateGlobalVariables_motor(CTRL_Handle handle)
 {

@@ -254,7 +254,7 @@ interrupt void mainISR(void);
 #ifdef USER_SCIA_INT
 //! \brief The SCI-A receive interrupt service (ISR) routine
 //!
-interrupt void sciARxISR(void);                               // ...20210305kenny
+interrupt void sciARxISR(void);                               // TRinno...20210304kenny
 #endif
 
 void runCurrentReconstruction(void);

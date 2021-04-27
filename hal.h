@@ -139,6 +139,7 @@ extern "C" {
 typedef enum
 {
   HAL_Gpio_LED2=GPIO_Number_34   //!< GPIO pin number for ControlCARD LED 3
+//  HAL_Gpio_LED2=GPIO_Number_1   //!< GPIO pin number for ControlCARD LED 3
 } HAL_LedNumber_e;
   
 
@@ -166,7 +167,7 @@ typedef enum
 
 extern interrupt void mainISR(void);
 #ifdef USER_SCIA_INT
-extern interrupt void sciARxISR(void);          // ...20210305kenny
+extern interrupt void sciARxISR(void);          // TRinno...20210304kenny
 #endif
 
 
@@ -260,11 +261,11 @@ extern void HAL_enableAdcInts(HAL_Handle handle);
 
 
 #ifdef USER_SCIA_INT
-//! \brief     Enables the SCI interrupts
+//! \brief     Enables the SCI interrupts			// TRinno...20210304kenny
 //! \details   Enables the SCI interrupts in the PIE and CPU. Enables the
 //!            interrupt to be sent from the SCI peripheral.
 //! \param[in] handle - the hardware abstraction (HAL) handle
-extern void HAL_enableSciInts(HAL_Handle handle);                           // ...20210305kenny
+extern void HAL_enableSciInts(HAL_Handle handle);
 #endif
 
 
@@ -482,10 +483,10 @@ static inline void HAL_initIntVectorTable(HAL_Handle handle)
 
   ENABLE_PROTECTED_REGISTER_WRITE_MODE;
 
-//  pie->ADCINT1 = &mainISR;
-  pie->ADCINT1_HP = &mainISR;           // ...20210305kenny
+  pie->ADCINT1 = &mainISR;
+//  pie->ADCINT1_HP = &mainISR;           // TRinno...20210304kenny
 #ifdef USER_SCIA_INT
-  pie->SCIRXINTA = &sciARxISR;          // ...20210305kenny
+  pie->SCIRXINTA = &sciARxISR;          // TRinno...20210304kenny
 #endif
 
   DISABLE_PROTECTED_REGISTER_WRITE_MODE;
@@ -606,10 +607,10 @@ static inline void HAL_readAdcDataWithOffsets(HAL_Handle handle,HAL_AdcData_t *p
 } // end of HAL_readAdcDataWithOffsets() function
 
 
-//! \brief      Reads the Potentiometer
+//! \brief      Reads the Potentiometer			// TRinno...20210312kenny
 //! \param[in]  handle    The hardware abstraction layer (HAL) handle
 //! \return     The potentiometer value from _IQ(-1.0) to _IQ(1.0)
-static inline _iq HAL_readPotentiometerData(HAL_Handle handle)          // ...20210312kenny
+static inline _iq HAL_readPotentiometerData(HAL_Handle handle)
 {
   HAL_Obj *obj = (HAL_Obj *)handle;
 
@@ -955,7 +956,7 @@ extern void HAL_setParams(HAL_Handle handle,const USER_Params *pUserParams);
 extern void HAL_setupAdcs(HAL_Handle handle);
 
 
-//! \brief     Sets up the sciA peripheral                            ...20210304kenny
+//! \brief     Sets up the sciA peripheral			TRinno...20210304kenny
 //! \param[in] handle  The hardware abstraction layer (HAL) handle
 extern void HAL_setupSciA(HAL_Handle handle);
 
