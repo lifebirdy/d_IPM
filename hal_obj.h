@@ -150,6 +150,7 @@ typedef struct _HAL_Obj_
   PWM_Handle    pwmHandle[3];     //<! the PWM handles
 
   PWMDAC_Handle pwmDacHandle[3];  //<! the PWMDAC handles
+//  PWMDAC_Handle pwmDacHandle;     //<! the PWMDAC handles   TRinno...20210511kenny
 
   PWR_Handle    pwrHandle;        //<! the power handle
 
@@ -163,10 +164,12 @@ typedef struct _HAL_Obj_
 
   _iq           voltage_sf;       //!< the voltage scale factor, volts_pu/cnt
 
-  uint_least8_t numCurrentSensors; //!< the number of current sensors
-  uint_least8_t numVoltageSensors; //!< the number of voltage sensors
+  uint_least8_t numCurrentSensors;  //!< the number of current sensors
+  uint_least8_t numVoltageSensors;  //!< the number of voltage sensors
 
-  SCI_Handle    sciAHandle;        //!< the SCI handle TRinno...20210304kenny
+  SCI_Handle    sciAHandle;         //!< the SCI handle TRinno...20210304kenny
+
+  PWM_Handle    pwmUserHandle;      //<! the PWM handle   TRinno...20210511kenny
 
 } HAL_Obj;
 

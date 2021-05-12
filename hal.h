@@ -1004,6 +1004,14 @@ extern void HAL_setupPwms(HAL_Handle handle,
                    const uint_least16_t numPwmTicksPerIsrTick);
 
 
+//! \brief     Sets up the PWM (Pulse Width Modulator) for user control             // TRinno...20210511kenny
+//! \param[in] handle          The hardware abstraction layer (HAL) handle
+//! \param[in] systemFreq_MHz  The system frequency, MHz
+//! \param[in] pwmPeriod_usec  The PWM period, usec
+extern void HAL_setupPwmUser(HAL_Handle handle,
+                             const uint_least16_t systemFreq_MHz,
+                             const float_t pwmPeriod_usec);
+
 //! \brief     Sets up the timers
 //! \param[in] handle          The hardware abstraction layer (HAL) handle
 //! \param[in] systemFreq_MHz  The system frequency, MHz
@@ -1100,6 +1108,29 @@ static inline void HAL_writePwmData(HAL_Handle handle,HAL_PwmData_t *pPwmData)
 
   return;
 } // end of HAL_writePwmData() function
+
+
+//! \brief     Writes PWM data to the PWM comparator for user control           // TRinno...20210511kenny
+//! \param[in] handle     The hardware abstraction layer (HAL) handle
+//! \param[in] dutyCycle  The duty cycle to be written, from _IQ(0.0) to _IQ(1.0)
+static inline void HAL_writePwmDataUser(HAL_Handle handle,_iq dutyCycle)
+{
+  HAL_Obj *obj = (HAL_Obj *)handle;
+  PWM_Obj *pwm;
+  _iq period;
+  _iq value;
+  uint16_t value_sat;
+
+  pwm = (PWM_Obj *)obj->pwmUserHandle;
+  period = (_iq)pwm->TBPRD;
+  value = _IQmpy(dutyCycle, period);
+  value_sat = (uint16_t)_IQsat(value, period, _IQ(0.0));
+
+  // write the PWM data
+  PWM_write_CmpA(obj->pwmUserHandle,value_sat);
+
+  return;
+} // end of HAL_writePwmDataUser() function
 
 
 //! \brief     Reads PWM compare register A
