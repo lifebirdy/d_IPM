@@ -678,6 +678,10 @@ HAL_Handle HAL_init(void *pMemory,const size_t numBytes)
   obj->timerHandle[2] = TIMER_init((void *)TIMER2_BASE_ADDR,sizeof(TIMER_Obj));
 
 
+  // initialize PWM user handle
+  obj->pwmUserHandle = PWM_init((void *)PWM_ePWM4_BASE_ADDR,sizeof(PWM_Obj));           // TRinno...20210511kenny
+
+
   return(handle);
 } // end of HAL_init() function
 
@@ -763,6 +767,9 @@ void HAL_setParams(HAL_Handle handle,const USER_Params *pUserParams)
                 pUserParams->pwmPeriod_usec,
                 USER_NUM_PWM_TICKS_PER_ISR_TICK);
 
+
+  // setup the PWM User                                     // TRinno...20210511kenny
+  HAL_setupPwmUser(handle,60,(float_t)100.0);
 
   // setup the timers
   HAL_setupTimers(handle,
@@ -979,8 +986,8 @@ void HAL_setupGpios(HAL_Handle handle)
   // PWM6
   GPIO_setMode(obj->gpioHandle,GPIO_Number_5,GPIO_5_Mode_EPWM3B);
 
-  // PWM1-PFC
-  GPIO_setMode(obj->gpioHandle,GPIO_Number_6,GPIO_6_Mode_GeneralPurpose);
+  // PWM-User
+  GPIO_setMode(obj->gpioHandle,GPIO_Number_6,GPIO_6_Mode_EPWM4A);           // TRinno...20210511kenny
 
   // PWM2-PFC
   GPIO_setMode(obj->gpioHandle,GPIO_Number_7,GPIO_7_Mode_GeneralPurpose);
@@ -1085,7 +1092,7 @@ void HAL_setupPeripheralClks(HAL_Handle handle)
   CLK_enablePwmClock(obj->clkHandle,PWM_Number_1);
   CLK_enablePwmClock(obj->clkHandle,PWM_Number_2);
   CLK_enablePwmClock(obj->clkHandle,PWM_Number_3);
-  CLK_enablePwmClock(obj->clkHandle,PWM_Number_4);
+  CLK_enablePwmClock(obj->clkHandle,PWM_Number_4);      // TRinno...20210511kenny already enable code exist, check it is
 
   CLK_disableHrPwmClock(obj->clkHandle);
 
@@ -1257,6 +1264,76 @@ void HAL_setupPwms(HAL_Handle handle,
 
   return;
 }  // end of HAL_setupPwms() function
+
+
+void HAL_setupPwmUser(HAL_Handle handle,                            // TRinno...20210511kenny
+                   const uint_least16_t systemFreq_MHz,
+                   const float_t pwmPeriod_usec)
+{
+  HAL_Obj   *obj = (HAL_Obj *)handle;
+  uint16_t  period_cycles = (uint16_t)((float_t)systemFreq_MHz*pwmPeriod_usec);
+
+  // turns off the output of the EPWM peripheral
+  PWM_setOneShotTrip(obj->pwmUserHandle);
+
+  // setup the Time-Base Control Register (TBCTL)
+  PWM_setCounterMode(obj->pwmUserHandle,PWM_CounterMode_Up);
+  PWM_disableCounterLoad(obj->pwmUserHandle);
+  PWM_setPeriodLoad(obj->pwmUserHandle,PWM_PeriodLoad_Immediate);
+  PWM_setSyncMode(obj->pwmUserHandle,PWM_SyncMode_Disable);
+  PWM_setHighSpeedClkDiv(obj->pwmUserHandle,PWM_HspClkDiv_by_1);
+  PWM_setClkDiv(obj->pwmUserHandle,PWM_ClkDiv_by_1);
+  PWM_setPhaseDir(obj->pwmUserHandle,PWM_PhaseDir_CountUp);
+  PWM_setRunMode(obj->pwmUserHandle,PWM_RunMode_FreeRun);
+
+  // setup the Timer-Based Phase Register (TBPHS)
+  PWM_setPhase(obj->pwmUserHandle,0);
+
+  // setup the Time-Base Counter Register (TBCTR)
+  PWM_setCount(obj->pwmUserHandle,0);
+
+  // setup the Time-Base Period Register (TBPRD)
+  // set to zero initially
+  PWM_setPeriod(obj->pwmUserHandle,0);
+
+  // setup the Counter-Compare Control Register (CMPCTL)
+  PWM_setLoadMode_CmpA(obj->pwmUserHandle,PWM_LoadMode_Zero);
+  PWM_setShadowMode_CmpA(obj->pwmUserHandle,PWM_ShadowMode_Shadow);
+
+  // setup the Action-Qualifier Output A Register (AQCTLA)
+  PWM_setActionQual_CntUp_CmpA_PwmA(obj->pwmUserHandle,PWM_ActionQual_Clear);
+  PWM_setActionQual_Period_PwmA(obj->pwmUserHandle,PWM_ActionQual_Set);
+
+  // setup the Dead-Band Generator Control Register (DBCTL)
+  PWM_setDeadBandOutputMode(obj->pwmUserHandle,PWM_DeadBandOutputMode_Bypass);
+
+  // setup the PWM-Chopper Control Register (PCCTL)
+  PWM_disableChopping(obj->pwmUserHandle);
+
+  // setup the Trip Zone Select Register (TZSEL)
+  PWM_disableTripZones(obj->pwmUserHandle);
+
+  // setup the Event Trigger Selection Register (ETSEL)
+  PWM_disableInt(obj->pwmUserHandle);
+  PWM_disableSocAPulse(obj->pwmUserHandle);
+
+  // setup the Event Trigger Prescale Register (ETPS)
+  PWM_setIntPeriod(obj->pwmUserHandle,PWM_IntPeriod_FirstEvent);
+  PWM_setSocAPeriod(obj->pwmUserHandle,PWM_SocPeriod_FirstEvent);
+
+  // setup the Event Trigger Clear Register (ETCLR)
+  PWM_clearIntFlag(obj->pwmUserHandle);
+  PWM_clearSocAFlag(obj->pwmUserHandle);
+
+  // since the PWM is configured as an up counter, the period register is set to
+  // the desired PWM period
+  PWM_setPeriod(obj->pwmUserHandle,period_cycles);
+
+  // turns on the output of the EPWM peripheral
+  PWM_clearOneShotTrip(obj->pwmUserHandle);
+
+  return;
+}  // end of HAL_setupPwmUser() function
 
 
 void HAL_setupTimers(HAL_Handle handle,const float_t systemFreq_MHz)

@@ -100,6 +100,7 @@ CTRL_Obj ctrl;				//v1p7 format
 uint16_t gLEDcnt = 0;
 uint16_t gSCIdata, gSCIsuccess;             // TRinno...20210304kenny for use SCI (UART)
 _iq gPotentiometer = _IQ(0.0);              // TRinno...20210312kenny for read temperature
+_iq gUserPWMduty = _IQ(0.9);                // TRinno...20210511kenny for user PWM output
 
 volatile MOTOR_Vars_t gMotorVars = MOTOR_Vars_INIT;
 
@@ -682,11 +683,15 @@ interrupt void mainISR(void)
   HAL_writeDacData(halHandle,&gDacData);
 #endif
 
+
+  gUserPWMduty = gPwmData.Tabc.value[0];                    // TRinno...20210511kenny
+  HAL_writePwmDataUser(halHandle,gUserPWMduty);
+
   return;
 } // end of mainISR() function
 
 
-#ifdef USER_SCIA_INT            // TRinno...20210304kenny
+#ifdef USER_SCIA_INT                                        // TRinno...20210304kenny
 //! \brief the ISR for SCI-A receive interrupt
 interrupt void sciARxISR(void)
 {
