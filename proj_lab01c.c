@@ -100,6 +100,7 @@ CTRL_Obj ctrl;				//v1p7 format
 uint16_t gLEDcnt = 0;
 uint16_t gSCIdata, gSCIsuccess;             // TRinno...20210304kenny for use SCI (UART)
 _iq gPotentiometer = _IQ(0.0);              // TRinno...20210312kenny for read temperature
+_iq gUserPWMduty = _IQ(0.9);                // TRinno...20210511kenny for user PWM output
 
 volatile MOTOR_Vars_t gMotorVars = MOTOR_Vars_INIT;
 
@@ -442,7 +443,7 @@ void main(void)
                     gMotorVars.V_bias.value[1] = HAL_getBias(halHandle,HAL_SensorType_Voltage,1);
                     gMotorVars.V_bias.value[2] = HAL_getBias(halHandle,HAL_SensorType_Voltage,2);
 
-                    // set flag to enable speed controller
+                    // set flag to disable speed controller
                    CTRL_setFlag_enableSpeedCtrl(ctrlHandle, false);
 
                    // set flag to enable current controller
@@ -733,6 +734,12 @@ interrupt void mainISR(void)
 
   HAL_writeDacData(halHandle,&gDacData);
 #endif
+
+
+//  gUserPWMduty = gPwmData.Tabc.value[0];                    // TRinno...20210511kenny
+  gUserPWMduty = angle_gen.Angle_pu;
+
+  HAL_writePwmDataUser(halHandle,gUserPWMduty);
 
   return;
 } // end of mainISR() function
