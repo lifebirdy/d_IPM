@@ -249,7 +249,6 @@ void main(void)
   CPU_TIME_setParams(cpu_timeHandle, PWM_getPeriod(halHandle->pwmHandle[0]));
 
 #ifndef F2802xF
-
   // set DAC parameters
  gDacData.ptrData[0] = &gPwmData.Tabc.value[0];
  gDacData.ptrData[1] = &gPwmData.Tabc.value[1];
@@ -264,26 +263,27 @@ void main(void)
   HAL_setDacParameters(halHandle, &gDacData);
 #endif
 
-#ifndef F2802xF
+//#ifndef F2802xF                         // TRinno...20210531kenny
   // Initialize Datalog
   datalogHandle = DATALOG_init(&datalog,sizeof(datalog));
 
+
   // Connect inputs of the datalog module
+  datalog.iptr = &angle_gen.Angle_pu;        // datalogBuff[0]
 //  datalog.iptr[0] = &gPwmData.Tabc.value[0];		// datalogBuff[0]
 //  datalog.iptr[1] = &gPwmData.Tabc.value[1];		// datalogBuff[1]
 //  datalog.iptr[2] = &gPwmData.Tabc.value[2];		// datalogBuff[2]
 
-  datalog.iptr[0] = &angle_gen.Angle_pu;		// datalogBuff[0]
-  datalog.iptr[1] = &gAdcData.I.value[0];		// datalogBuff[1]
-  datalog.iptr[2] = &gAdcData.V.value[0];		// datalogBuff[2]
+//  datalog.iptr[0] = &angle_gen.Angle_pu;		// datalogBuff[0]
+//  datalog.iptr[1] = &gAdcData.I.value[0];		// datalogBuff[1]
+//  datalog.iptr[2] = &gAdcData.V.value[0];		// datalogBuff[2]
 
   datalog.Flag_EnableLogData = true;
-  datalog.Flag_EnableLogOneShot = false;#endif
-#endif
+  datalog.Flag_EnableLogOneShot = false;
+//#endif
 
   // setup faults
   HAL_setupFaults(halHandle);
-
 
   // initialize the interrupt vector table
   HAL_initIntVectorTable(halHandle);
@@ -669,9 +669,9 @@ interrupt void mainISR(void)
   // setup the controller
   CTRL_setup(ctrlHandle);
 
-#ifndef F2802xF
+//#ifndef F2802xF                   // TRinno...20210531kenny
   DATALOG_update(datalogHandle);
-#endif
+//#endif
 
 #ifndef F2802xF
   // connect inputs of the PWMDAC module.
@@ -684,7 +684,9 @@ interrupt void mainISR(void)
 #endif
 
 
-  gUserPWMduty = gPwmData.Tabc.value[0];                    // TRinno...20210511kenny
+//  gUserPWMduty = gPwmData.Tabc.value[0];                    // TRinno...20210511kenny
+  gUserPWMduty = angle_gen.Angle_pu;
+
   HAL_writePwmDataUser(halHandle,gUserPWMduty);
 
   return;

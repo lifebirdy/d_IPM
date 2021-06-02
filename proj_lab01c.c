@@ -254,23 +254,24 @@ void main(void)
   HAL_setDacParameters(halHandle, &gDacData);
 #endif
 
-#ifndef F2802xF
+//#ifndef F2802xF                         // TRinno...20210531kenny
   // Initialize Datalog
   datalogHandle = DATALOG_init(&datalog,sizeof(datalog));
   DATALOG_Obj *datalogObj = (DATALOG_Obj *)datalogHandle;
 
   // Connect inputs of the datalog module
+  datalog.iptr = &angle_gen.Angle_pu;        // datalogBuff[0]
 //  datalog.iptr[0] = &angle_gen.Angle_pu;		// datalogBuff[0]
 //  datalog.iptr[1] = &gAdcData.I.value[0];		// datalogBuff[1]
 //  datalog.iptr[2] = &gAdcData.V.value[0];		// datalogBuff[2]
 
-  datalog.iptr[0] = &angle_gen.Angle_pu;					// datalogBuff[0]
-  datalog.iptr[1] = &controller_obj->pid_Iq.refValue;		// datalogBuff[1]
-  datalog.iptr[2] = &controller_obj->pid_Iq.fbackValue;		// datalogBuff[2]
+//  datalog.iptr[0] = &angle_gen.Angle_pu;					// datalogBuff[0]
+//  datalog.iptr[1] = &controller_obj->pid_Iq.refValue;		// datalogBuff[1]
+//  datalog.iptr[2] = &controller_obj->pid_Iq.fbackValue;		// datalogBuff[2]
 
   datalogObj->Flag_EnableLogData = true;
   datalogObj->Flag_EnableLogOneShot = false;
-#endif
+//#endif
 
   // setup faults
   HAL_setupFaults(halHandle);
@@ -721,9 +722,9 @@ interrupt void mainISR(void)
   // setup the controller
   CTRL_setup(ctrlHandle);
 
-#ifndef F2802xF
+//#ifndef F2802xF                   // TRinno...20210531kenny
   DATALOG_update(datalogHandle);
-#endif
+//#endif
 
 #ifndef F2802xF
   // connect inputs of the PWMDAC module.
