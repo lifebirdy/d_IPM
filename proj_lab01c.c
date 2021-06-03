@@ -100,6 +100,7 @@ CTRL_Obj ctrl;				//v1p7 format
 uint16_t gLEDcnt = 0;
 uint16_t gSCIdata, gSCIsuccess;             // TRinno...20210304kenny for use SCI (UART)
 _iq gPotentiometer = _IQ(0.0);              // TRinno...20210312kenny for read temperature
+_iq gUserPWMduty = _IQ(0.9);                // TRinno...20210511kenny for user PWM output
 
 volatile MOTOR_Vars_t gMotorVars = MOTOR_Vars_INIT;
 
@@ -253,23 +254,24 @@ void main(void)
   HAL_setDacParameters(halHandle, &gDacData);
 #endif
 
-#ifndef F2802xF
+//#ifndef F2802xF                         // TRinno...20210531kenny
   // Initialize Datalog
   datalogHandle = DATALOG_init(&datalog,sizeof(datalog));
   DATALOG_Obj *datalogObj = (DATALOG_Obj *)datalogHandle;
 
   // Connect inputs of the datalog module
+  datalog.iptr = &angle_gen.Angle_pu;        // datalogBuff[0]
 //  datalog.iptr[0] = &angle_gen.Angle_pu;		// datalogBuff[0]
 //  datalog.iptr[1] = &gAdcData.I.value[0];		// datalogBuff[1]
 //  datalog.iptr[2] = &gAdcData.V.value[0];		// datalogBuff[2]
 
-  datalog.iptr[0] = &angle_gen.Angle_pu;					// datalogBuff[0]
-  datalog.iptr[1] = &controller_obj->pid_Iq.refValue;		// datalogBuff[1]
-  datalog.iptr[2] = &controller_obj->pid_Iq.fbackValue;		// datalogBuff[2]
+//  datalog.iptr[0] = &angle_gen.Angle_pu;					// datalogBuff[0]
+//  datalog.iptr[1] = &controller_obj->pid_Iq.refValue;		// datalogBuff[1]
+//  datalog.iptr[2] = &controller_obj->pid_Iq.fbackValue;		// datalogBuff[2]
 
   datalogObj->Flag_EnableLogData = true;
   datalogObj->Flag_EnableLogOneShot = false;
-#endif
+//#endif
 
   // setup faults
   HAL_setupFaults(halHandle);
@@ -442,7 +444,7 @@ void main(void)
                     gMotorVars.V_bias.value[1] = HAL_getBias(halHandle,HAL_SensorType_Voltage,1);
                     gMotorVars.V_bias.value[2] = HAL_getBias(halHandle,HAL_SensorType_Voltage,2);
 
-                    // set flag to enable speed controller
+                    // set flag to disable speed controller
                    CTRL_setFlag_enableSpeedCtrl(ctrlHandle, false);
 
                    // set flag to enable current controller
@@ -720,9 +722,9 @@ interrupt void mainISR(void)
   // setup the controller
   CTRL_setup(ctrlHandle);
 
-#ifndef F2802xF
+//#ifndef F2802xF                   // TRinno...20210531kenny
   DATALOG_update(datalogHandle);
-#endif
+//#endif
 
 #ifndef F2802xF
   // connect inputs of the PWMDAC module.
@@ -733,6 +735,12 @@ interrupt void mainISR(void)
 
   HAL_writeDacData(halHandle,&gDacData);
 #endif
+
+
+//  gUserPWMduty = gPwmData.Tabc.value[0];                    // TRinno...20210511kenny
+  gUserPWMduty = angle_gen.Angle_pu;
+
+  HAL_writePwmDataUser(halHandle,gUserPWMduty);
 
   return;
 } // end of mainISR() function
